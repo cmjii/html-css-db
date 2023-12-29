@@ -1,0 +1,136 @@
+프로시저
+
+shop db에서 사용
+
+제품명을 입력하면 그 제품을 구매한 customer을 반환
+'에어 나시'라는 제품을 입력하면 그 제품을 구매한 손님 리스트를 반환
+프로시저명 : select_buy
+
+drop procedure if exists[프로시저명];
+delimiter //
+create procedure [프로시저명](매개변수 : in, out, inout
+in 매개변수 (in_name), out(out_mode))
+begin
+[처리구문]
+end//
+delimiter ;
+call 프로시저명(); => 구문 호출
+
+
+drop procedure if exists sel_buy;
+delimiter //
+create procedure sel_buy(
+in in_product_name varchar(40))
+begin
+select customer from buy 
+where product_name = in_product_name;
+end//
+delimiter ;
+call sel_buy("에어 나시");
+
+-----------------------------------------------------
+
+구매 금액이 10만원 이상인 손님 이름과 구매 가격을 프로시저를 출력 
+
+drop procedure if exists select_buy;
+delimiter //
+create procedure select_buy()
+begin
+select customer, sum(total) as '구매금액' from buy
+group by customer
+having sum(total)>=100000;
+end//
+delimiter ;
+call select_buy();
+
+변수선언
+set @변수이름 = 값;
+set @변수이름 :=값;
+select @변수이름 :=값; => 선언하고, 값을 대입
+- 트리거나 프로시저 안에서 변수를 사용 할 때는 declar를 사용하여 선언 후 변수 사용 (지역변수 개념)
+-트리거나 프로시저 안에서의 변수는 전역변수(@변수)를 사용할 수 없음
+- 트리거나 프로시저에서 변수는 일반적으로 _를 사용하여 일반 칼럼과 구분을 함
+
+특정 제품을 구매한 인원수를 리턴하는 프로시저 작성
+
+프로시저명 : count_buy
+매개변수 : in 제품명, out 개수
+
+drop procedure if exists count_buy;
+delimiter //
+create procedure count_buy (
+in in_product_name varchar(45), out out_cnt int)
+begin
+select count(product_name) into out_cnt
+from buy
+where product_name = in_product_name;
+end//
+delimiter ;
+
+call count_buy('에어 나시', @cnt);
+
+select @cnt;
+
+
+------------------------------------------------------------------------------
+
+college 데이터베이스 이용
+student 테이블의 st_point (이수학점)을 업데이트 하시오.
+- 학점을 주는 조건은 at_repetition = 'n'이면 학점을 획득
+(y면 학점x)
+- 학점은 attend 테이블의 at_co_num이 어느 과목인지 확인
+- 해당 과목의 학점 ( su_point) 를 확인하여
+- 해당 학생의 st_point에 update.
+
+-프로시저 두개
+call update_stpoint(학번); // 한번에 한명씩
+call update_stpointall(); // 모두 한번에 변경
+
+
+
+drop procedure if exists update_stpoint;
+delimiter //
+create procedure update_stpoint(
+in in_st_num int)
+begin
+declare _sum int default 0;
+set _sum = (
+select sum(su_point) from subject
+join course on su_num = co_su_num
+join attend on at_co_num = co_num
+join student on st_num = at_st_num
+where st_num = in_st_num and at_repetition = 'n');
+update student set st_point = _sum
+where st_num = in_st_num;
+end//
+delimiter ;
+
+call update_stpoint(2020123001);
+
+select*from student;
+
+drop procedure if exists update_stpoint;
+delimiter //
+create procedure update_stpointall()
+begin
+update student set st_point = (
+select sum(su_point) from subject
+join course on su_num = co_su_num
+join attend on at_co_num = co_num
+where at_st_num = st_num and at_repetition = 'n'
+group by at_st_num);
+end//
+delimiter ;
+
+
+call update_stpointall();
+
+
+
+select std_name from student
+where std_point = (select min(std_point) from student) limit 1 
+
+
+
+
+

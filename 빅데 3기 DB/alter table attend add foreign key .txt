@@ -1,0 +1,15 @@
+alter table attend add foreign key (at_st_num) references student(st_num);
+alter table guide add foreign key (gu_st_num) references student(st_num);
+alter table course add foreign key (co_pr_num) references professer(pr_num);
+alter table guide add foreign key (gu_pr_num) references professer(pr_num);
+alter table course add foreign key (co_su_num) references subject(su_num);
+alter table attend add foreign key (at_co_num) references course(co_num);
+
+
+
+
+
+
+
+
+

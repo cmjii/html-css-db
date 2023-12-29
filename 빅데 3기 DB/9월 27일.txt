@@ -1,0 +1,140 @@
+insert into student values 
+('2020160003','김순이','컴퓨터공학',1,25),
+('2020160004','홍순길','디자인',1,20);
+
+
+student학생을 추가하고, 조인 후 수강하고있지 않는 학생의 명단 출력
+-> student 테이블에는 있지만, attend테이블에는 없는 자료를 추출
+-> left join : 두 테이블이 일치하지 않아도 모든 내용 출력 
+(앞쪽 데이터 기준, 뒤쪽 데이터는 X inner와 다르게 순서가 중요)
+(inner join : 두 테이블에 일치하는 데이터만 출력)
+
+select s.* from student s
+left join attend a
+on s.std_num = a.at_std_num
+where a.at_num is null;
+--------------------------------------------------------------------------------------------
+
+
+
+create table student (
+st_num int,
+st_name varchar(20) not null,
+st_term int default 0,
+st_point int default 0,
+primary key(st_num));
+
+alter table attend add foreign key (at_st_num) references student(st_num);
+alter table guide add foreign key (gu_st_num) references student(st_num);
+
+create table professor(
+pr_num int,
+pr_name varchar(20) not null,
+pr_ag int not null,
+pr_room varchar(45),
+pr_state varchar(45) default '재직',
+pr_positition varchar (45) default'조교수',
+primary key(pr_num));
+
+
+alter table course add foreign key (co_pr_num) references professer(pr_num);
+alter table guide add foreign key (gu_pr_num) references professer(pr_num);
+
+create table subject( 
+su_num int,
+su_code varchar(20) not null,
+su_title varchar(45) not null,
+su_point int not null default 0,
+su_time int not null default 0,
+primary key(su_num));
+
+alter table course add foreign key (co_su_num) references subject(su_num);
+
+
+create table course(
+co_num int auto_increment,
+co_pr_num int not null,
+co_su_num int not null,
+co_term int default 1,
+co_year int,
+co_timetable varchar(100),
+primary key(co_num));
+
+
+create table attend(
+at_num int auto_increment,
+at_st_num int not null,
+at_co_num int not null,
+at_mid int default 0,
+at_final int default 0,
+at_attend int default 0,
+at_hw int default 0,
+at_score varchar (45),
+at_pass varchar (1) default 'n',
+at_repetition varchar (1) default'n',
+primary key(at_num));
+
+alter table attend add foreign key (at_co_num) references course(co_num);
+
+create table guide(
+gu_num int auto_increment,
+gu_pr_num int not null,
+gu_st_num int not null,
+gu_year varchar(45),
+primary key (gu_num));
+
+
+외래키 등록
+alter table attend add foreign key (at_st_num) references student(st_num);
+alter table attend add foreign key (at_co_num) references course(co_num);
+alter table guide add foreign key (gu_st_num) references student(st_num);
+alter table guide add foreign key (gu_pr_num) references professer(pr_num);
+alter table course add foreign key (co_su_num) references subject(su_num);
+alter table course add foreign key (co_pr_num) references professer(pr_num);
+
+
+--------------------------------------------------------------------------
+
+1. 김영철이 수강하는 과목명 출력
+select su_title from attend
+join student on at_st_num = st_num
+join course on at_co_num = co_num
+join subject on su_num = co_su_num
+where st_name = '김영철';
+
+2. 강길동 교수가 지도하는 학생명 출력
+select st_name from guide
+join student on gu_st_num = st_num
+join professor on gu_pr_num = pr_num
+where pr_name = '강길동';
+
+
+3. 대학수학 과목을 수강하는 수강자 명단 출력 (중복제거)
+select distinct st_name from attend
+join student on st_num = at_st_num
+join course on at_co_num = co_num
+join subject on su_num = co_su_num
+where su_title = '대학수학'; 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
